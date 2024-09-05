@@ -1,14 +1,14 @@
 #import streamlit as st
-#import pandas as pd
+import pandas as pd
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import pickle
+#import sys
 
+#sys.path.append("nd_hand_fashion_valuation")
+#from nd_hand_fashion_valuation.preprocessor import preprocess_features
 
 app = FastAPI()
-
-
-
 
 
 # Allowing all middleware is optional, but good practice for dev purposes
@@ -20,26 +20,62 @@ app.add_middleware(
     allow_headers=["*"],  # Allows all headers
 )
 
-# test case for predict to see whether api is working
-# this will be changed with load model
-#http://127.0.0.1:8000/predict?day_of_week=7&time=6
+#http://127.0.0.1:8000/predict?product_category=Women%20Clothing&product_season=Autumn%20%2F%20Winter&product_condition=Never%20worn&brand_name=Miu%20Miu&seller_badge=Common&seller_products_sold=3.0&material_group=Natural%20Fibers&shipping_days=1.5&color_group=Neutrals&gender_binary=1
 
-#app.state.model = pickle.load(open("../model/model.pkl","rb"))
+app.state.model = pickle.load(open("models/model.pkl","rb"))
 
 @app.get("/predict")
-def predict(day_of_week, time):
+def predict(
+        product_category: str,      # Women Clothing
+        product_season: str,        # Autumn / Winter
+        product_condition: str,     # Never worn
+        brand_name: str,            # Miu Miu
+        seller_badge: str,          # Common
+        seller_products_sold: float, # 3.0
+        material_group: str,         # Natural Fibers
+        shipping_days: float,        # 1.5
+        color_group: str,            # Neutrals
+        gender_binary: int           # 1
+    ):
 
-    wait_prediction = int(day_of_week) * int(time)
+    #X_pred = pd.DataFrame(locals(), index=[0]) #locals() get all fn arg as dict
 
-    #model = app.state.model
-    #assert model is not None
+    X = [[product_category,
+        product_season,
+        product_condition,
+        brand_name,
+        seller_badge,
+        seller_products_sold,
+        material_group,
+        shipping_days,
+        color_group,
+        gender_binary]]
 
-    #X_processed = preprocess_features(X_pred)
+    X_pred = pd.DataFrame(data=X, columns=['product_category',
+                                        'product_season',
+                                        'product_condition',
+                                        'brand_name',
+                                        'seller_badge',
+                                        'seller_products_sold',
+                                        'material_group',
+                                        'shipping_days',
+                                        'color_group',
+                                        'gender_binary'])
 
-    #y_pred = model.predict(X_processed)
 
+    model = app.state.model
+    assert model is not None
+    print("---- Model has been loaded ----")
 
-    return {'wait': wait_prediction}
+    pipeline = pickle.load(open("models/pipeline.pkl","rb"))
+    print("----- Pipeline pickle has been loaded ------")
+
+    X_processed = pipeline.transform(X_pred)
+    print("----- X_pred has been transformed  ------")
+
+    y_pred = model.predict(X_processed)
+
+    return dict(price = float(y_pred))
 
 
 
