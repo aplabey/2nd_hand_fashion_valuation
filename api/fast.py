@@ -1,7 +1,13 @@
-#import streamlit as st
+# install below lib before running this file
+# pip install uvicorn
+# pip install fastapi
+
 import pandas as pd
+import numpy as np
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
 import pickle
 #import sys
 
@@ -75,7 +81,9 @@ def predict(
 
     y_pred = model.predict(X_processed)
 
-    return dict(price = float(y_pred))
+    y_pred = np.exp(y_pred)
+
+    return dict(price = round(float(y_pred),2))
 
 
 

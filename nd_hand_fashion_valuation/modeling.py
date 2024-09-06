@@ -1,3 +1,6 @@
+# install below lib before running this lib
+# pip install xgboost
+
 import pandas as pd
 import numpy as np
 import pickle
