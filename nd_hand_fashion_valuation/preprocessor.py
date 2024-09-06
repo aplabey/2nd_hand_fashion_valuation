@@ -69,7 +69,6 @@ def preprocess_features(df):
                     'seller_num_products_listed', 'sold', 'reserved', 'available',
                     'in_stock', 'should_be_gone', 'has_cross_border_fees', 'usually_ships_within'], axis=1)
 
-HEAD:2nd_hand_fashion_valuation/preprocessor.py
 def select_features(df):
     df = df.drop(['product_like_count',	'buyers_fees','product_gender_target','product_id', 'product_type',
                       'brand_url', 'brand_id',
@@ -120,4 +119,3 @@ def preproc_pipe(X, y_log):
             print("----- pickle file has been generated -----")
 
     return X_processed
->>>>>>> master:nd_hand_fashion_valuation/preprocessor.py
