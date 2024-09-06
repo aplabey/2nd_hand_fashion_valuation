@@ -34,7 +34,7 @@ python-dotenv
 psycopg2-binary
 
 # API
-fastapi==0.108.0
+fastapi
 pytz
 uvicorn
 # tests

@@ -1,12 +1,14 @@
 import numpy as np
 import pandas as pd
+import pickle
 
-from colorama import Fore, Style
+#from colorama import Fore, Style
 
 from sklearn.pipeline import make_pipeline
 from sklearn.compose import ColumnTransformer, make_column_transformer
 from sklearn.preprocessing import FunctionTransformer
 from sklearn.preprocessing import TargetEncoder, MinMaxScaler, RobustScaler, OneHotEncoder, OrdinalEncoder
+
 
 material_mapping = {
     'Wool': 'Natural Fibers','Cotton': 'Natural Fibers','Silk': 'Natural Fibers','Linen': 'Natural Fibers',
@@ -42,32 +44,10 @@ color_mapping = {
     'Metallic': 'Special','Gold': 'Special','Silver': 'Special','silver/black': 'Special','Multicolour': 'Special'
 }
 
-# Define the transformers for numerical and categorical features
-num_transformer = make_pipeline(RobustScaler())
-
-# Categorical feature transformers
-cat_transformer = make_pipeline(OneHotEncoder(sparse_output=False, handle_unknown='ignore'))
-
-# Ordinal feature transformers
-ord_enc_product_condition = OrdinalEncoder(categories=[['Fair condition', 'Good condition', 'Very good condition', 'Never worn', 'Never worn, with tag']])
-ord_enc_seller_badge = OrdinalEncoder(categories=[['Common', 'Trusted', 'Expert']])
-
-# Transform brands
-brand_transformer = TargetEncoder(categories='auto', target_type='continuous', cv=5)
-
-
-preproc = ColumnTransformer(
-    transformers=[
-        ('num', num_transformer, ['product_like_count', 'seller_products_sold', 'shipping_days']),
-        ('cat', cat_transformer, ['product_category', 'product_season', 'material_group', 'color_group']),
-        ('ord_condition', ord_enc_product_condition, ['product_condition']),
-        ('ord_badge', ord_enc_seller_badge, ['seller_badge']),
-        ('brand_enc', brand_transformer, ['brand_name'])
-    ],
-    remainder='passthrough'
-)
-
 def preprocess_features(df):
+
+    df = df.drop_duplicates()
+
     df = df[df['price_usd'] <= 10000]
     df['usually_ships_within'] = df['usually_ships_within'].replace(np.nan, "1-2 days")
     df['has_cross_border_fees'] = df['has_cross_border_fees'].replace(np.nan, False)
@@ -80,8 +60,16 @@ def preprocess_features(df):
 
     df['gender_binary'] = df['product_gender_target'].map({'Men': 0, 'Women': 1})
 
-    return df
+    df_preprocessed = df.drop(['product_like_count',	'buyers_fees','product_gender_target','product_id', 'product_type',
+                    'brand_url', 'brand_id',
+                    'product_material', 'product_color', 'product_name',
+                    'product_description', 'product_keywords', 'warehouse_name', 'seller_id',
+                    'seller_pass_rate', 'seller_num_followers', 'seller_country', 'seller_price',
+                    'seller_earning', 'seller_community_rank', 'seller_username',
+                    'seller_num_products_listed', 'sold', 'reserved', 'available',
+                    'in_stock', 'should_be_gone', 'has_cross_border_fees', 'usually_ships_within'], axis=1)
 
+HEAD:2nd_hand_fashion_valuation/preprocessor.py
 def select_features(df):
     df = df.drop(['product_like_count',	'buyers_fees','product_gender_target','product_id', 'product_type',
                       'brand_url', 'brand_id',
@@ -95,3 +83,41 @@ def select_features(df):
     return df
 
 
+    return df_preprocessed
+
+
+def preproc_pipe(X, y_log):
+    # Define the transformers for numerical and categorical features
+    num_transformer = make_pipeline(RobustScaler())
+    # Categorical feature transformers
+    cat_transformer = make_pipeline(OneHotEncoder(sparse_output=False, handle_unknown='ignore'))
+
+    # Ordinal feature transformers
+    ord_enc_product_condition = OrdinalEncoder(categories=[['Fair condition', 'Good condition', 'Very good condition', 'Never worn', 'Never worn, with tag']])
+    ord_enc_seller_badge = OrdinalEncoder(categories=[['Common', 'Trusted', 'Expert']])
+
+    # Transform brands
+    brand_transformer = TargetEncoder(categories='auto', target_type='continuous', cv=5)
+
+
+    preproc = ColumnTransformer(
+        [
+            ('num', num_transformer, ['seller_products_sold', 'shipping_days']),
+            ('cat', cat_transformer, ['product_category', 'product_season', 'material_group', 'color_group']),
+            ('ord_condition', ord_enc_product_condition, ['product_condition']),
+            ('ord_badge', ord_enc_seller_badge, ['seller_badge']),
+            ('brand_enc', brand_transformer, ['brand_name'])
+        ],
+        remainder='passthrough'
+        )
+
+
+    X_processed = preproc.fit_transform(X, y_log)
+
+    # generate a pickle file of this pipeline as it will then be used for transforming the X_pred in api call
+    with open("models/pipeline.pkl", "wb") as file:
+            pickle.dump(preproc, file)
+            print("----- pickle file has been generated -----")
+
+    return X_processed
+>>>>>>> master:nd_hand_fashion_valuation/preprocessor.py
