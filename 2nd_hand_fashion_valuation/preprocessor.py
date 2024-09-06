@@ -91,5 +91,7 @@ def select_features(df):
                       'seller_earning', 'seller_community_rank', 'seller_username',
                       'seller_num_products_listed', 'sold', 'reserved', 'available',
                       'in_stock', 'should_be_gone', 'has_cross_border_fees', 'usually_ships_within'], axis=1)
-    
+
     return df
+
+
