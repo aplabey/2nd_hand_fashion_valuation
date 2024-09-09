@@ -1,0 +1,5 @@
+nan
+1-2 days
+3-5 days
+6-7 days
+More than 7 days
