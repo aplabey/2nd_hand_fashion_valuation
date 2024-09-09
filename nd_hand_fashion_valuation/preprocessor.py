@@ -70,6 +70,7 @@ def preprocess_features(df):
     df['gender_binary'] = df['product_gender_target'].map({'Men': 0, 'Women': 1})
     # Apply text preprocessing
     df['cleaned_description'] = df['product_description'].apply(preprocess_text)
+    df = select_features(df)
 
     return df
 
@@ -110,11 +111,11 @@ def preproc_pipe(X, y_log):
             ('ord_condition', ord_enc_product_condition, ['product_condition']),
             ('ord_badge', ord_enc_seller_badge, ['seller_badge']),
             ('brand_enc', brand_transformer, ['brand_name']),
-            ('tfidf', tfidf_vectorizer, ['product_description'])
+            ('tfidf', tfidf_vectorizer, 'cleaned_description')
 
         ],
         remainder='passthrough'
-        )
+    )
 
 
     X_processed = preproc.fit_transform(X, y_log)
