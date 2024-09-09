@@ -45,6 +45,14 @@ color_mapping = {
     'Metallic': 'Special','Gold': 'Special','Silver': 'Special','silver/black': 'Special','Multicolour': 'Special'
 }
 
+def preprocess_text(text):
+    if pd.isna(text):
+        return ""  # Handle missing values
+    text = str(text)  # Ensure input is a string
+    text = text.lower()  # Convert to lowercase
+    text = re.sub(r'[^\w\s]', '', text)  # Remove punctuation
+    return text
+
 def preprocess_features(df):
 
     df = df.drop_duplicates()
@@ -60,38 +68,24 @@ def preprocess_features(df):
     df['color_group'] = df['product_color'].map(color_mapping)
 
     df['gender_binary'] = df['product_gender_target'].map({'Men': 0, 'Women': 1})
-
     # Apply text preprocessing
     df['cleaned_description'] = df['product_description'].apply(preprocess_text)
-
-    df_cleaned = select_features(df)
-
-    return df_cleaned
-
-
-def select_features(df):
-
-    df = df.drop(['product_like_count',	'buyers_fees','product_gender_target','product_id', 'product_type',
-                'brand_url', 'brand_id',
-                'product_material', 'product_color', 'product_name',
-                'product_description', 'product_keywords', 'warehouse_name', 'seller_id',
-                'seller_pass_rate', 'seller_num_followers', 'seller_country', 'seller_price',
-                'seller_earning', 'seller_community_rank', 'seller_username',
-                'seller_num_products_listed', 'sold', 'reserved', 'available',
-                'in_stock', 'should_be_gone', 'has_cross_border_fees', 'usually_ships_within'], axis=1)
-
+    df = select_features(df)
 
     return df
 
+def select_features(df):
+    df = df.drop(['product_like_count',	'buyers_fees','product_gender_target','product_id', 'product_type',
+            'brand_url', 'brand_id',
+            'product_material', 'product_color', 'product_name',
+            'product_description', 'product_keywords', 'warehouse_name', 'seller_id',
+            'seller_pass_rate', 'seller_num_followers', 'seller_country', 'seller_price',
+            'seller_earning', 'seller_community_rank', 'seller_username',
+            'seller_num_products_listed', 'sold', 'reserved', 'available',
+            'in_stock', 'should_be_gone', 'has_cross_border_fees', 'usually_ships_within'], axis=1)
 
-# for cleaning product description
-def preprocess_text(text):
-    if pd.isna(text):
-        return ""  # Handle missing values
-    text = str(text)  # Ensure input is a string
-    text = text.lower()  # Convert to lowercase
-    text = re.sub(r'[^\w\s]', '', text)  # Remove punctuation
-    return text
+
+    return df
 
 
 def preproc_pipe(X, y_log):
@@ -119,12 +113,12 @@ def preproc_pipe(X, y_log):
             ('ord_condition', ord_enc_product_condition, ['product_condition']),
             ('ord_badge', ord_enc_seller_badge, ['seller_badge']),
             ('brand_enc', brand_transformer, ['brand_name']),
-            ('tfidf',tfidf_vectorizer,['cleaned_description'])
+            ('tfidf',tfidf_vectorizer,'cleaned_description')
 
 
         ],
         remainder='passthrough'
-        )
+    )
 
 
     X_processed = preproc.fit_transform(X, y_log)
@@ -135,3 +129,16 @@ def preproc_pipe(X, y_log):
             print("----- pipeline pickle has been generated -----")
 
     return X_processed
+
+
+def api_preprocessor(df):
+
+    df['material_group'] = df['material_group'].map(material_mapping)
+    df['shipping_days'] = df['shipping_days'].map(shipping_days_mapping)
+    df['color_group'] = df['color_group'].map(color_mapping)
+
+    df['gender_binary'] = df['gender_binary'].map({'Men': 0, 'Women': 1})
+    # Apply text preprocessing
+    df['cleaned_description'] = df['cleaned_description'].apply(preprocess_text)
+
+    return df
