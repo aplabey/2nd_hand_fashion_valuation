@@ -12,7 +12,7 @@ import pickle
 #import sys
 
 #sys.path.append("nd_hand_fashion_valuation")
-#from nd_hand_fashion_valuation.preprocessor import preprocess_features
+from nd_hand_fashion_valuation.preprocessor import api_preprocessor
 
 app = FastAPI()
 
@@ -26,7 +26,7 @@ app.add_middleware(
     allow_headers=["*"],  # Allows all headers
 )
 
-#http://127.0.0.1:8000/predict?product_category=Women%20Clothing&product_season=Autumn%20%2F%20Winter&product_condition=Never%20worn&brand_name=Miu%20Miu&seller_badge=Common&seller_products_sold=3.0&material_group=Natural%20Fibers&shipping_days=1.5&color_group=Neutrals&gender_binary=1
+#http://127.0.0.1:8000/predict?product_category=Women%20Clothing&product_season=Autumn%20%2F%20Winter&product_condition=Never%20worn&brand_name=Barbara%20Bui&seller_badge=Common&seller_products_sold=2&product_material=Wool&shipping_days=3-5%20days&product_color=Navy&product_gender=Women&product_description=small
 
 app.state.model = pickle.load(open("models/model.pkl","rb"))
 
@@ -38,10 +38,11 @@ def predict(
         brand_name: str,            # Miu Miu
         seller_badge: str,          # Common
         seller_products_sold: float, # 3.0
-        material_group: str,         # Natural Fibers
-        shipping_days: float,        # 1.5
-        color_group: str,            # Neutrals
-        gender_binary: int           # 1
+        product_material: str,         # Natural Fibers
+        shipping_days: str,        # 1.5
+        product_color: str,            # Neutrals
+        product_gender: str,           # 1
+        product_description: str
     ):
 
     #X_pred = pd.DataFrame(locals(), index=[0]) #locals() get all fn arg as dict
@@ -52,10 +53,11 @@ def predict(
         brand_name,
         seller_badge,
         seller_products_sold,
-        material_group,
+        product_material,
         shipping_days,
-        color_group,
-        gender_binary]]
+        product_color,
+        product_gender,
+        product_description]]
 
     X_pred = pd.DataFrame(data=X, columns=['product_category',
                                         'product_season',
@@ -66,17 +68,22 @@ def predict(
                                         'material_group',
                                         'shipping_days',
                                         'color_group',
-                                        'gender_binary'])
+                                        'gender_binary',
+                                        'cleaned_description'])
 
 
     model = app.state.model
     assert model is not None
     print("---- Model has been loaded ----")
 
+
+
+    X_preprocess = api_preprocessor(X_pred)
+
     pipeline = pickle.load(open("models/pipeline.pkl","rb"))
     print("----- Pipeline pickle has been loaded ------")
 
-    X_processed = pipeline.transform(X_pred)
+    X_processed = pipeline.transform(X_preprocess)
     print("----- X_pred has been transformed  ------")
 
     y_pred = model.predict(X_processed)

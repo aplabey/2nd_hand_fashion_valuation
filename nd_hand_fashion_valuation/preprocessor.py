@@ -76,21 +76,23 @@ def preprocess_features(df):
 
 def select_features(df):
     df = df.drop(['product_like_count',	'buyers_fees','product_gender_target','product_id', 'product_type',
-                      'brand_url', 'brand_id',
-                      'product_material', 'product_color', 'product_name',
-                      'product_description', 'product_keywords', 'warehouse_name', 'seller_id',
-                      'seller_pass_rate', 'seller_num_followers', 'seller_country', 'seller_price',
-                      'seller_earning', 'seller_community_rank', 'seller_username',
-                      'seller_num_products_listed', 'sold', 'reserved', 'available',
-                      'in_stock', 'should_be_gone', 'has_cross_border_fees', 'usually_ships_within'], axis=1)
+            'brand_url', 'brand_id',
+            'product_material', 'product_color', 'product_name',
+            'product_description', 'product_keywords', 'warehouse_name', 'seller_id',
+            'seller_pass_rate', 'seller_num_followers', 'seller_country', 'seller_price',
+            'seller_earning', 'seller_community_rank', 'seller_username',
+            'seller_num_products_listed', 'sold', 'reserved', 'available',
+            'in_stock', 'should_be_gone', 'has_cross_border_fees', 'usually_ships_within'], axis=1)
 
 
     return df
 
 
 def preproc_pipe(X, y_log):
+
     # Define the transformers for numerical and categorical features
     num_transformer = make_pipeline(RobustScaler())
+
     # Categorical feature transformers
     cat_transformer = make_pipeline(OneHotEncoder(sparse_output=False, handle_unknown='ignore'))
 
@@ -111,7 +113,8 @@ def preproc_pipe(X, y_log):
             ('ord_condition', ord_enc_product_condition, ['product_condition']),
             ('ord_badge', ord_enc_seller_badge, ['seller_badge']),
             ('brand_enc', brand_transformer, ['brand_name']),
-            ('tfidf', tfidf_vectorizer, 'cleaned_description')
+            ('tfidf',tfidf_vectorizer,'cleaned_description')
+
 
         ],
         remainder='passthrough'
@@ -123,6 +126,19 @@ def preproc_pipe(X, y_log):
     # generate a pickle file of this pipeline as it will then be used for transforming the X_pred in api call
     with open("models/pipeline.pkl", "wb") as file:
             pickle.dump(preproc, file)
-            print("----- pickle file has been generated -----")
+            print("----- pipeline pickle has been generated -----")
 
     return X_processed
+
+
+def api_preprocessor(df):
+
+    df['material_group'] = df['material_group'].map(material_mapping)
+    df['shipping_days'] = df['shipping_days'].map(shipping_days_mapping)
+    df['color_group'] = df['color_group'].map(color_mapping)
+
+    df['gender_binary'] = df['gender_binary'].map({'Men': 0, 'Women': 1})
+    # Apply text preprocessing
+    df['cleaned_description'] = df['cleaned_description'].apply(preprocess_text)
+
+    return df
