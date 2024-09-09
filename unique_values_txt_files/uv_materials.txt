@@ -1,0 +1,71 @@
+Wool
+Cotton
+Polyester
+Vegan leather
+Cotton - elasthane
+Silk
+Synthetic
+Lycra
+Viscose
+Denim - Jeans
+Linen
+Polyamide
+Velvet
+Leather
+Cashmere
+Lace
+Glitter
+Tweed
+Vinyl
+Suede
+Mongolian Lamb
+Raccoon
+Rabbit
+Fur
+Cloth
+Mink
+Spandex
+Faux fur
+Fox
+Python
+Shearling
+Exotic leathers
+Plastic
+Beaver
+Patent leather
+Alligator
+Astrakhan
+Ostrich
+Sponge
+Rubber
+Crocodile
+Chinchilla
+Pony-style calfskin
+Water snake
+Eel
+Wood
+Gold
+Lizard
+Platinum
+Not specified
+Steel
+Stingray
+Metal
+gold and steel
+Ceramic
+Titanium
+Gold plated
+Silver
+Pink gold
+White gold
+Yellow gold
+Crystal
+Silver Plated
+Wicker
+Silver Gilt
+Glass
+nan
+Pearl
+Chain
+Pearls
+Varan
