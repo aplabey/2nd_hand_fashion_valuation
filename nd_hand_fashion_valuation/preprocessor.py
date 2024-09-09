@@ -71,14 +71,7 @@ def preprocess_features(df):
     # Apply text preprocessing
     df['cleaned_description'] = df['product_description'].apply(preprocess_text)
 
-    df_preprocessed = df.drop(['product_like_count',	'buyers_fees','product_gender_target','product_id', 'product_type',
-                    'brand_url', 'brand_id',
-                    'product_material', 'product_color', 'product_name',
-                    'product_description', 'product_keywords', 'warehouse_name', 'seller_id',
-                    'seller_pass_rate', 'seller_num_followers', 'seller_country', 'seller_price',
-                    'seller_earning', 'seller_community_rank', 'seller_username',
-                    'seller_num_products_listed', 'sold', 'reserved', 'available',
-                    'in_stock', 'should_be_gone', 'has_cross_border_fees', 'usually_ships_within'], axis=1)
+    return df
 
 def select_features(df):
     df = df.drop(['product_like_count',	'buyers_fees','product_gender_target','product_id', 'product_type',
@@ -90,10 +83,8 @@ def select_features(df):
                       'seller_num_products_listed', 'sold', 'reserved', 'available',
                       'in_stock', 'should_be_gone', 'has_cross_border_fees', 'usually_ships_within'], axis=1)
 
+
     return df
-
-
-    return df_preprocessed
 
 
 def preproc_pipe(X, y_log):
