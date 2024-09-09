@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import pickle
+import re
 
 #from colorama import Fore, Style
 
@@ -8,7 +9,7 @@ from sklearn.pipeline import make_pipeline
 from sklearn.compose import ColumnTransformer, make_column_transformer
 from sklearn.preprocessing import FunctionTransformer
 from sklearn.preprocessing import TargetEncoder, MinMaxScaler, RobustScaler, OneHotEncoder, OrdinalEncoder
-
+from sklearn.feature_extraction.text import TfidfVectorizer
 
 material_mapping = {
     'Wool': 'Natural Fibers','Cotton': 'Natural Fibers','Silk': 'Natural Fibers','Linen': 'Natural Fibers',
@@ -60,21 +61,44 @@ def preprocess_features(df):
 
     df['gender_binary'] = df['product_gender_target'].map({'Men': 0, 'Women': 1})
 
-    df_preprocessed = df.drop(['product_like_count',	'buyers_fees','product_gender_target','product_id', 'product_type',
-                    'brand_url', 'brand_id',
-                    'product_material', 'product_color', 'product_name',
-                    'product_description', 'product_keywords', 'warehouse_name', 'seller_id',
-                    'seller_pass_rate', 'seller_num_followers', 'seller_country', 'seller_price',
-                    'seller_earning', 'seller_community_rank', 'seller_username',
-                    'seller_num_products_listed', 'sold', 'reserved', 'available',
-                    'in_stock', 'should_be_gone', 'has_cross_border_fees', 'usually_ships_within'], axis=1)
+    # Apply text preprocessing
+    df['cleaned_description'] = df['product_description'].apply(preprocess_text)
 
-    return df_preprocessed
+    df_cleaned = select_features(df)
+
+    return df_cleaned
+
+
+def select_features(df):
+
+    df = df.drop(['product_like_count',	'buyers_fees','product_gender_target','product_id', 'product_type',
+                'brand_url', 'brand_id',
+                'product_material', 'product_color', 'product_name',
+                'product_description', 'product_keywords', 'warehouse_name', 'seller_id',
+                'seller_pass_rate', 'seller_num_followers', 'seller_country', 'seller_price',
+                'seller_earning', 'seller_community_rank', 'seller_username',
+                'seller_num_products_listed', 'sold', 'reserved', 'available',
+                'in_stock', 'should_be_gone', 'has_cross_border_fees', 'usually_ships_within'], axis=1)
+
+
+    return df
+
+
+# for cleaning product description
+def preprocess_text(text):
+    if pd.isna(text):
+        return ""  # Handle missing values
+    text = str(text)  # Ensure input is a string
+    text = text.lower()  # Convert to lowercase
+    text = re.sub(r'[^\w\s]', '', text)  # Remove punctuation
+    return text
 
 
 def preproc_pipe(X, y_log):
+
     # Define the transformers for numerical and categorical features
     num_transformer = make_pipeline(RobustScaler())
+
     # Categorical feature transformers
     cat_transformer = make_pipeline(OneHotEncoder(sparse_output=False, handle_unknown='ignore'))
 
@@ -85,6 +109,8 @@ def preproc_pipe(X, y_log):
     # Transform brands
     brand_transformer = TargetEncoder(categories='auto', target_type='continuous', cv=5)
 
+    # Define the TF-IDF vectorizer for text data
+    tfidf_vectorizer = TfidfVectorizer(stop_words='english', max_features=1000)  # Limit to 1000 features
 
     preproc = ColumnTransformer(
         [
@@ -92,7 +118,10 @@ def preproc_pipe(X, y_log):
             ('cat', cat_transformer, ['product_category', 'product_season', 'material_group', 'color_group']),
             ('ord_condition', ord_enc_product_condition, ['product_condition']),
             ('ord_badge', ord_enc_seller_badge, ['seller_badge']),
-            ('brand_enc', brand_transformer, ['brand_name'])
+            ('brand_enc', brand_transformer, ['brand_name']),
+            ('tfidf',tfidf_vectorizer,['cleaned_description'])
+
+
         ],
         remainder='passthrough'
         )
@@ -103,6 +132,6 @@ def preproc_pipe(X, y_log):
     # generate a pickle file of this pipeline as it will then be used for transforming the X_pred in api call
     with open("models/pipeline.pkl", "wb") as file:
             pickle.dump(preproc, file)
-            print("----- pickle file has been generated -----")
+            print("----- pipeline pickle has been generated -----")
 
     return X_processed

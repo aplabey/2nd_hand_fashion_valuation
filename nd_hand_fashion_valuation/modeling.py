@@ -10,9 +10,9 @@ from sklearn.ensemble import GradientBoostingRegressor
 from xgboost import XGBRegressor
 from sklearn.pipeline import make_pipeline
 from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction.text import TfidfVectorizer
 
-sys.path.append("nd_hand_fashion_valuation")
-from preprocessor import preprocess_features, preproc_pipe
+from nd_hand_fashion_valuation.preprocessor import preprocess_features, select_features, preproc_pipe
 
 
 # reading raw data
