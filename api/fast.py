@@ -29,6 +29,8 @@ app.add_middleware(
 #http://127.0.0.1:8000/predict?product_category=Women%20Clothing&product_season=Autumn%20%2F%20Winter&product_condition=Never%20worn&brand_name=Barbara%20Bui&seller_badge=Common&seller_products_sold=2&product_material=Wool&shipping_days=3-5%20days&product_color=Navy&product_gender=Women&product_description=small
 
 app.state.model = pickle.load(open("models/model.pkl","rb"))
+app.state.pipeline = pickle.load(open("models/pipeline.pkl","rb"))
+
 
 @app.get("/predict")
 def predict(
@@ -76,12 +78,11 @@ def predict(
     assert model is not None
     print("---- Model has been loaded ----")
 
-
+    pipeline = app.state.pipeline
+    assert pipeline is not None
+    print("----- Pipeline has been loaded -----")
 
     X_preprocess = api_preprocessor(X_pred)
-
-    pipeline = pickle.load(open("models/pipeline.pkl","rb"))
-    print("----- Pipeline pickle has been loaded ------")
 
     X_processed = pipeline.transform(X_preprocess)
     print("----- X_pred has been transformed  ------")

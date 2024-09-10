@@ -139,6 +139,6 @@ def api_preprocessor(df):
 
     df['gender_binary'] = df['gender_binary'].map({'Men': 0, 'Women': 1})
     # Apply text preprocessing
-    df['cleaned_description'] = df['cleaned_description'].apply(preprocess_text)
+    df['cleaned_description'] = df['cleaned_description'].map(preprocess_text)
 
     return df
